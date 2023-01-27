@@ -1,0 +1,78 @@
+// stack implementation using  array
+// LIFO
+#include <bits/stdc++.h>
+using namespace std;
+class Stack
+{
+public:       //
+    int size; // size of array
+    int top;  // index of top element
+    int *arr;
+};
+bool isFull(Stack *ptr)
+{
+    if (ptr->top == ptr->size - 1)
+        return 1;
+    else
+        return 0;
+}
+bool isEmpty(Stack *ptr)
+{
+    if (ptr->top == -1)
+        return 1;
+    else
+        return 0;
+}
+void push(Stack *ptr, int val)
+{
+
+    if (isFull(ptr))
+    {
+        cout << "Stack Overflow!" << endl;
+    }
+    else
+    {
+        ptr->top++;
+        ptr->arr[ptr->top] = val;
+        cout<<"Element Pushed--> "<<val<<endl;
+    }
+}
+
+void pop(Stack *ptr)
+{
+    if (isEmpty(ptr))
+    {
+        cout << "Stack is Empty " << endl;
+    }
+    else
+    {
+        int val = ptr->arr[ptr->top];
+        ptr->top--;
+       cout<<"Element Popped--> "<<val<<endl;
+    }
+}
+
+int peek( Stack* ptr, int i){
+    int idx = ptr->top -i + 1;
+    if(idx < 0){
+        cout<<"Not a valid position for the stack"<<endl;
+        return -1;
+    }
+    else{
+        return ptr->arr[idx];
+    }
+}
+
+int main()
+{
+    Stack *s = new Stack[sizeof(Stack)];
+    s->size = 4;
+    s->top = -1;
+    s->arr = new int[s->size];
+   push(s,3);
+   push(s,3);
+   push(s,3);
+   push(s,3);
+   push(s,3);
+   pop(s);
+}
