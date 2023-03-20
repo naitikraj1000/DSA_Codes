@@ -1,0 +1,80 @@
+#include <bits/stdc++.h>
+using namespace std;
+// FIFO
+// Implementation of Queue Using Array
+
+struct Queue
+{
+    int size;
+    int f; // front
+    int r; // rear
+    int *arr;
+};
+
+bool isfull(struct Queue *q)
+{
+
+    if (q->r == q->size - 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool isempty(struct Queue *q)
+{
+    if (q->f == q->r)
+        return true;
+    else
+        return false;
+}
+
+void enqueu(struct Queue *q, int val)
+{
+    if (isfull(q))
+    {
+        cout << " Queue Already Full \n";
+    }
+    else
+    {
+        cout << " Element Entered in Queue " << val << endl;
+        q->r++;
+        q->arr[q->r] = val;
+    }
+}
+
+void dequeu(struct Queue *q)
+{
+    // FIFO (so front idx increasesr)
+    if (isempty(q))
+    {
+        cout << " Queue Already Empty \n";
+    }
+    else
+    {
+        q->f++;
+        int val = q->arr[q->f];
+        cout << " Element Deleted from Queue " << val << endl;
+    }
+}
+
+int main()
+{
+    struct Queue *q;
+    q->size = 5;
+    q->f = q->r = -1;
+    q->arr = new int(q->size * (sizeof(int)));
+    dequeu(q);
+    enqueu(q, 1);
+    enqueu(q, 2);
+    enqueu(q, 3);
+    enqueu(q, 4);
+    enqueu(q, 5);
+    dequeu(q);
+    dequeu(q);
+    enqueu(q, 6);
+    // Here We are not able to Use Memory Efficiently as we are able to do it in a stack
+}
