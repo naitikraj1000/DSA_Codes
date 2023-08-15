@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+using namespace std;
+const int N = 100005;
+int arr[N];
+int segment[4 * N + 2];
+int lazy[4 * N + 2];
+int build(int low, int high, int idx)
+{
+    if (low == high)
+    {
+        return segment[idx] = arr[low];
+    }
+
+    int mid = (low + high) / 2;
+    int left = build(low, mid, 2 * idx + 1);
+    int right = build(mid + 1, high, 2 * idx + 2);
+    return segment[idx] = left + right;
+}
+
+void rangeUpdate(int idx, int low, int high, int l, int r, int val)
+{
+
+    if (lazy[idx] != 0)
+    {
+        // update the node and propagate the lazy values to it's children
+        segment[idx] = (high - low + 1) * lazy[idx];
+        if (low != high)
+        {
+            lazy[2 * idx + 1] += lazy[idx];
+            lazy[2 * idx + 2] += lazy[idx];
+        }
+        lazy[idx] = 0;
+    }
+    // excluded case
+    if (r < low || l > high || low > high)
+        return;
+
+    // overlapping case(l<low<high<r)
+    if (low >= l && high <= r)
+    {
+        segment[idx] += (high - low + 1) * val;
+        // cout << idx << " ==> " << low << " ===> " << high <<" ===> "<<segment[idx]<< endl;
+        if (low != high)
+        {
+            lazy[2 * idx + 1] += (lazy[idx] + val);
+            lazy[2 * idx + 2] += (lazy[idx] + val);
+        }
+        return;
+    }
+    //(high>r>low>l)
+    int mid = (low + high) / 2;
+    rangeUpdate(2 * idx + 1, low, mid, l, r, val);
+    rangeUpdate(2 * idx + 2, mid + 1, high, l, r, val);
+    segment[idx] += (segment[2 * idx + 1] + segment[2 * idx + 2]);
+}
+
+int query(int idx, int low, int high, int l, int r)
+{
+    if (lazy[idx] != 0)
+    {
+        // update the node and propagate the lazy values to it's children
+        segment[idx] = (high - low + 1) * lazy[idx];
+        //
+        if (low != high)
+        {
+            lazy[2 * idx + 1] += lazy[idx];
+            lazy[2 * idx + 2] += lazy[idx];
+        }
+        lazy[idx] = 0;
+    }
+
+    // excluded case
+    if (r < low || l > high || low > high)
+        return 0;
+    // overlapping case(l<low<high<r)
+
+    if (low >= l && high <= r)
+    {
+        return segment[idx];
+    }
+
+    //(high>r>low>l)
+    int mid = (low + high) / 2;
+    int left = query(2 * idx + 1, low, mid, l, r);
+    int right = query(2 * idx + 2, mid + 1, high, l, r);
+    return left + right;
+}
+int main()
+{
+
+    build(0, 10, 0);
+    rangeUpdate(0, 0, 10, 2, 5, 90);
+    rangeUpdate(0, 0, 10, 1, 4, 10);
+    cout << query(0, 0, 10, 1, 3) << endl;
+}
