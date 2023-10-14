@@ -23,7 +23,7 @@ void rangeUpdate(int idx, int low, int high, int l, int r, int val)
     if (lazy[idx] != 0)
     {
         // update the node and propagate the lazy values to it's children
-        segment[idx] = (high - low + 1) * lazy[idx];
+        segment[idx] += (high - low + 1) * lazy[idx];
         if (low != high)
         {
             lazy[2 * idx + 1] += lazy[idx];
