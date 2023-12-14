@@ -1,1 +1,118 @@
 
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+class TrieNode
+{
+public:
+    TrieNode *child[26];
+    bool isEndofWord;
+    int cnt;
+
+    // Default Constructor
+    TrieNode()
+    {
+        isEndofWord = false;
+        cnt = 0;
+    }
+    // is key availaible or not
+    int is_key_availaible(int idx)
+    {
+        if (child[idx] == NULL)
+            return 0;
+        else
+            return 1;
+    }
+};
+
+TrieNode *root = new TrieNode();
+
+void insert(string s)
+{
+
+    TrieNode *node = root;
+    for (int i = 0; i < s.size(); i++)
+    {
+        if (node->is_key_availaible((s[i] - 'a')))
+        {
+            node = node->child[(s[i] - 'a')];
+        }
+        else
+        {
+            // Let's create new node
+            node->child[(s[i] - 'a')] = new TrieNode();
+            node = node->child[(s[i] - 'a')];
+        }
+        node->cnt++;
+    }
+
+    node->isEndofWord = true;
+}
+
+int search(string s)
+{
+    TrieNode *node = root;
+
+    for (int i = 0; i < s.size(); i++)
+    {
+        if (node->is_key_availaible((s[i] - 'a')))
+        {
+            node = node->child[(s[i] - 'a')];
+            if (i == s.size() - 1)
+            {
+                return node->isEndofWord;
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+void erase(string s)
+{
+    if (!search(s))
+        return;
+    TrieNode *node = root;
+    for (int i = 0; i < s.size(); i++)
+    {
+        node = node->child[(s[i] - 'a')];
+    }
+    node->cnt--;
+    node->isEndofWord = false;
+}
+
+int countPrefix(string prefix)
+{
+    TrieNode *node = root;
+    for (int i = 0; i < prefix.size(); i++)
+    {
+        if (node->is_key_availaible((prefix[i] - 'a')))
+        {
+            node = node->child[(prefix[i] - 'a')];
+        }
+        else
+        {
+            return 0; // Prefix not found
+        }
+    }
+    return node->cnt;
+}
+
+int main()
+{
+    insert("naitik");
+    insert("satyam");
+    insert("nayan");
+    insert("naya");
+    insert("sat");
+    insert("nayas");
+
+    cout << search("naya") << endl;
+    // erase("naya");
+    cout << countPrefix("naya") << endl;
+}
