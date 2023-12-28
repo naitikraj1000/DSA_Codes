@@ -1,0 +1,80 @@
+Queue using Two Stack with Push->O(n) Time Complexicity
+
+class MyQueue {
+public:
+          // 1 2 3 4 5 6
+          // 6 5 4 3 2 1
+
+ stack<int> s1,s2;
+    void push(int x) {       
+       
+        while(s1.size()!=0){
+            s2.push(s1.top());
+            s1.pop();
+        }
+         s2.push(x);
+        
+          while(s2.size()!=0){
+            s1.push(s2.top());
+            s2.pop();
+        }
+    }
+    
+    int pop() {
+        int ele=s1.top();
+        s1.pop();
+        return ele;
+    }
+    
+    int peek() {
+        return s1.top();
+    }
+    
+    bool empty() {
+        if(s1.size()==0) return true;
+        else return false;
+    }
+};
+
+Queue using Two Stack with Push->O(1) Time Complexicity
+
+class MyQueue {
+public:
+          // 1 2 3 4 5 6
+          // 6 5 4 3 2 1
+
+ stack<int> s1,s2;
+ void func(){
+     if(s2.size()==0){
+          while(s1.size()!=0){
+              s2.push(s1.top());
+              s1.pop();
+          }
+          
+     }
+ }
+    void push(int x) {       
+       
+     s1.push(x);
+    }
+    
+    int pop() {
+       func();
+        int ele=s2.top();
+        s2.pop();
+        return ele;
+    }
+    
+    int peek() {
+        func();
+        return s2.top();
+    }
+    
+    bool empty() {
+        if(s1.size()==0&&s2.size()==0) return true;
+        else return false;
+    }
+};
+
+
+
