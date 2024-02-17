@@ -1,28 +1,34 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <climits>
+
 using namespace std;
-#define ll long long
 
 class SegmentTree {
 private:
     vector<int> array;
-    vector<int> tree;
+    vector<pair<int, int>> tree;
     vector<int> lazy;
     int size;
 
-    void buildTree(int node, int start, int end) {
+    void build_tree(int node, int start, int end) {
         if (start == end) {
-            tree[node] = array[start];
+            tree[node] = {array[start], start};
         } else {
             int mid = (start + end) / 2;
-            buildTree(2 * node + 1, start, mid);
-            buildTree(2 * node + 2, mid + 1, end);
-            tree[node] = max(tree[2 * node + 1], tree[2 * node + 2]);
+            build_tree(2 * node + 1, start, mid);
+            build_tree(2 * node + 2, mid + 1, end);
+            if (tree[2 * node + 1].first >= tree[2 * node + 2].first) {
+                tree[node] = tree[2 * node + 1];
+            } else {
+                tree[node] = tree[2 * node + 2];
+            }
         }
     }
 
-    void updateRange(int node, int start, int end, int left, int right, int value) {
+    void update_range(int node, int start, int end, int left, int right, int value) {
         if (lazy[node] != 0) {
-            tree[node] += lazy[node];
+            tree[node].first += lazy[node];
             if (start != end) {
                 lazy[2 * node + 1] += lazy[node];
                 lazy[2 * node + 2] += lazy[node];
@@ -35,7 +41,7 @@ private:
         }
 
         if (start >= left && end <= right) {
-            tree[node] += value;
+            tree[node].first += value;
             if (start != end) {
                 lazy[2 * node + 1] += value;
                 lazy[2 * node + 2] += value;
@@ -44,18 +50,23 @@ private:
         }
 
         int mid = (start + end) / 2;
-        updateRange(2 * node + 1, start, mid, left, right, value);
-        updateRange(2 * node + 2, mid + 1, end, left, right, value);
-        tree[node] = max(tree[2 * node + 1], tree[2 * node + 2]);
+        update_range(2 * node + 1, start, mid, left, right, value);
+        update_range(2 * node + 2, mid + 1, end, left, right, value);
+
+        if (tree[2 * node + 1].first >= tree[2 * node + 2].first) {
+            tree[node] = tree[2 * node + 1];
+        } else {
+            tree[node] = tree[2 * node + 2];
+        }
     }
 
-    int query(int node, int start, int end, int left, int right) {
+    pair<int, int> query(int node, int start, int end, int left, int right) {
         if (start > end || start > right || end < left) {
-            return numeric_limits<int>::min();
+            return {INT_MIN, -1};
         }
 
         if (lazy[node] != 0) {
-            tree[node] += lazy[node];
+            tree[node].first += lazy[node];
             if (start != end) {
                 lazy[2 * node + 1] += lazy[node];
                 lazy[2 * node + 2] += lazy[node];
@@ -68,9 +79,13 @@ private:
         }
 
         int mid = (start + end) / 2;
-        int leftQuery = query(2 * node + 1, start, mid, left, right);
-        int rightQuery = query(2 * node + 2, mid + 1, end, left, right);
-        return max(leftQuery, rightQuery);
+        auto left_query = query(2 * node + 1, start, mid, left, right);
+        auto right_query = query(2 * node + 2, mid + 1, end, left, right);
+        if (left_query.first >= right_query.first) {
+            return left_query;
+        } else {
+            return right_query;
+        }
     }
 
 public:
@@ -78,31 +93,33 @@ public:
         array = arr;
         size = arr.size();
         tree.resize(4 * size);
-        lazy.resize(4 * size, 0);
-        buildTree(0, 0, size - 1);
+        lazy.resize(4 * size);
+        build_tree(0, 0, size - 1);
     }
 
-    void updateRange(int left, int right, int value) {
-        updateRange(0, 0, size - 1, left, right, value);
+    void update_range(int left, int right, int value) {
+        update_range(0, 0, size - 1, left, right, value);
     }
 
-    int query(int left, int right) {
+    pair<int, int> query(int left, int right) {
         return query(0, 0, size - 1, left, right);
     }
 };
 
 int main() {
     vector<int> arr = {1, 3, 5, 7, 9, 11};
-    SegmentTree segTree(arr);
+    SegmentTree seg_tree(arr);
 
-    // Query max value in range [1, 4]
-    cout << segTree.query(1, 4) << endl;
+    // Query max value and its rightmost index in range [1, 4]
+    pair<int, int> result = seg_tree.query(1, 4);
+    cout << "Max value: " << result.first << ", Rightmost index: " << result.second << endl;
 
     // Add 10 to all elements in range [2, 5]
-    segTree.updateRange(2, 5, 10);
+    seg_tree.update_range(2, 2, 100);
 
-    // Query max value in range [1, 4] after update
-    cout << segTree.query(1, 4) << endl;
+    // Query max value and its rightmost index in range [1, 4] after update
+    result = seg_tree.query(1, 4);
+    cout << "Max value: " << result.first << ", Rightmost index: " << result.second << endl;
 
     return 0;
 }
