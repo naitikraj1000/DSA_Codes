@@ -1,9 +1,18 @@
 #include <bits/stdc++.h>
 using namespace std;
-const int N = 100005;
-int arr[N];
-int segment[4 * N + 2];
-int lazy[4 * N + 2];
+#define int long long int
+#define NUMMAX 200050
+const int mod = 1e9 + 7;
+int n, m , q;
+vector<int> graph[NUMMAX];
+int vis[NUMMAX];
+int start_time[NUMMAX];
+int end_time[NUMMAX];
+int timer=0;
+
+int arr[NUMMAX];
+int segment[4 * NUMMAX + 2];
+int lazy[4 * NUMMAX + 2];
 int build(int low, int high, int idx)
 {
     if (low == high)
@@ -14,7 +23,7 @@ int build(int low, int high, int idx)
     int mid = (low + high) / 2;
     int left = build(low, mid, 2 * idx + 1);
     int right = build(mid + 1, high, 2 * idx + 2);
-    return segment[idx] = left + right;
+    return segment[idx] = max(left, right);
 }
 
 void rangeUpdate(int idx, int low, int high, int l, int r, int val)
@@ -38,12 +47,12 @@ void rangeUpdate(int idx, int low, int high, int l, int r, int val)
     // overlapping case(l<low<high<r)
     if (low >= l && high <= r)
     {
-        segment[idx] += (high - low + 1) * val;
+        segment[idx] = val;
         // cout << idx << " ==> " << low << " ===> " << high <<" ===> "<<segment[idx]<< endl;
         if (low != high)
         {
-            lazy[2 * idx + 1] += (val);
-            lazy[2 * idx + 2] += (val);
+          lazy[2*idx + 1] += lazy[idx];
+            lazy[2*idx + 2] += lazy[idx];
         }
         return;
     }
@@ -51,12 +60,12 @@ void rangeUpdate(int idx, int low, int high, int l, int r, int val)
     int mid = (low + high) / 2;
     rangeUpdate(2 * idx + 1, low, mid, l, r, val);
     rangeUpdate(2 * idx + 2, mid + 1, high, l, r, val);
-    segment[idx] = (segment[2 * idx + 1] + segment[2 * idx + 2]);
+    segment[idx] = max(segment[2 * idx + 1], segment[2 * idx + 2]);
 }
 
 int query(int idx, int low, int high, int l, int r)
 {
-    cout << idx << " ==> " << low << " ==> " << high << " ==> " << segment[idx] << endl;
+    // cout << idx << " ==> " << low << " ==> " << high << " ==> " << segment[idx] << endl;
     if (lazy[idx] != 0)
     {
         // update the node and propagate the lazy values to it's children
@@ -71,7 +80,7 @@ int query(int idx, int low, int high, int l, int r)
 
     // excluded case
     if (r < low || l > high || low > high)
-        return 0;
+        return INT_MIN;
     // overlapping case(l<low<high<r)
 
     if (low >= l && high <= r)
@@ -83,13 +92,56 @@ int query(int idx, int low, int high, int l, int r)
     int mid = (low + high) / 2;
     int left = query(2 * idx + 1, low, mid, l, r);
     int right = query(2 * idx + 2, mid + 1, high, l, r);
-    return left + right;
+    return max(left,right);
 }
-int main()
+
+
+void dfs(int ver)
+{
+    start_time[ver] = timer;
+    timer++;
+    vis[ver] = 1;
+    for (int i = 0; i < graph[ver].size(); i++)
+    {
+        int child = graph[ver][i];
+        if (vis[child] == 0)
+        {
+            dfs(child);
+        }
+    }
+    end_time[ver] = timer;
+}
+
+int32_t main()
 {
 
-    build(0, 10, 0);
-    rangeUpdate(0, 0, 10, 2, 5, 90);
-    rangeUpdate(0, 0, 10, 1, 4, 10);
-    cout << query(0, 0, 10, 2, 5) << endl;
+     cin >> n >> q;
+    int val[n];
+    for (int i = 1; i <= n; i++)cin >> val[i];
+    for (int i = 0; i < n-1; i++)
+    {
+        int x, y;
+        cin >> x >> y;
+        graph[x].push_back(y);
+        graph[y].push_back(x);
+    }
+
+    dfs(1);
+        for (int i = 1; i <= n; i++)arr[start_time[i]] = val[i];
+         build(0, n-1, 0);
+    
+  for(int i=0, t; i<q; i++) {
+    cin>>t;
+    
+    if(t == 1) {
+      int s, x;
+      cin>>s>>x;
+      rangeUpdate(0, 0, n-1, start_time[s],start_time[s],x);
+    }
+    else {
+      int s;
+      cin>>s;
+      cout<<query(0, 0, n-1, start_time[s], end_time[s]-1)<<endl;
+    }
+  }
 }
