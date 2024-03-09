@@ -1,1 +1,67 @@
-// this is code for heap
+#include <vector>
+#include <algorithm>
+#include <limits> // Add this header for std::numeric_limits
+
+class minHeap {
+public:
+    std::vector<int> v;
+    int sz;
+
+    // Constructor
+    minHeap(int n) : sz(0) {
+        v.resize(n);
+    }
+
+    // Function to heapify up
+    void heapifyUp(int idx) {
+        while (idx > 0 && v[idx] < v[(idx - 1) / 2]) {
+            std::swap(v[idx], v[(idx - 1) / 2]);
+            idx = (idx - 1) / 2;
+        }
+    }
+
+    // Function to heapify down
+    void heapifyDown(int idx) {
+        while (2 * idx + 1 < sz) {
+            int left = 2 * idx + 1;
+            int right = 2 * idx + 2;
+            int smallest = left;
+            if (right < sz && v[right] < v[left])
+                smallest = right;
+            if (v[idx] < v[smallest])
+                break;
+            std::swap(v[idx], v[smallest]);
+            idx = smallest;
+        }
+    }
+
+    // Extract the minimum element
+    int extractMinElement() {
+        if (sz == 0)
+            return -1; // Assuming -1 as a placeholder for empty heap
+        int minElement = v[0];
+        v[0] = v[sz - 1];
+        sz--;
+        heapifyDown(0);
+        return minElement;
+    }
+
+    // Delete an element at given index
+    void deleteElement(int ind) {
+        if (ind < 0 || ind >= sz)
+            return; // Index out of bounds
+        v[ind] = std::numeric_limits<int>::min(); // Replace with minimum value
+        heapifyUp(ind);
+        extractMinElement(); // After replacing, extract min to maintain heap property
+    }
+
+    // Insert a new element
+    void insert(int val) {
+        if (sz >= v.size())
+            v.push_back(val);
+        else
+            v[sz] = val;
+        sz++;
+        heapifyUp(sz - 1);
+    }
+};
