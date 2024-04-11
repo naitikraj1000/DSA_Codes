@@ -1,0 +1,55 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// DSU. parity[u] := color(u) ^ color(parent[u])
+vector<int> parent, parity, Rank;
+
+// return root and color(u) ^ color(root)
+pair<int, int> dsu_find(int u) {
+    vector<pair<int, int>> path;
+    int cu = 0;
+    while (parent[u] >= 0) {
+        path.emplace_back(u, cu);
+        cu ^= parity[u];
+        u = parent[u];
+    }
+    for (auto [v, cv] : path) {
+        parity[v] = cu ^ cv;
+        parent[v] = u;
+    }
+    return {u, cu};
+}
+
+// returns whether edge maintains bipartite
+bool dsu_merge(int u, int v) {
+    auto [ru, cu] = dsu_find(u);
+    auto [rv, cv] = dsu_find(v);
+    if (ru == rv) return cu ^ cv;
+    if (Rank[ru] < Rank[rv]) swap(ru, rv);
+    parent[rv] = ru;
+    if (Rank[rv] == Rank[ru]) ++Rank[ru];
+    parity[rv] = cu ^ cv ^ 1;
+    return true;
+}
+
+int teamTournament(int N, const vector<pair<int, int>>& matches) {
+    parent.assign(N, -1);
+    parity.assign(N, -1);
+    Rank.assign(N, 0);
+
+    int ans = 0;
+    for (auto [u, v] : matches) {
+        if (!dsu_merge(u - 1, v - 1)) break;
+        ++ans;
+    }
+    return ans;
+}
+
+int main() {
+    cout << teamTournament(3, {{1, 2}, {2, 3}, {3, 1}}) << endl; // 3
+    cout << teamTournament(4, {{1, 2}, {2, 3}, {3, 4}, {1, 4}, {2, 3}, {2, 4}}) << endl; // 5
+    cout << teamTournament(8, {{1, 2}, {3, 4}, {2, 4}, {5, 6}, {5, 7}, {5, 8}, {1, 5}, {2, 8}, {3, 5}}) << endl; // 7
+    return 0;
+}
