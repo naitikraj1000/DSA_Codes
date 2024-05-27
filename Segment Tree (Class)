@@ -1,0 +1,96 @@
+class SegTree
+{
+
+public:
+    vector<int> tree, lazy;
+    SegTree(int n)
+    {
+        tree.resize(4 * n + 5, 0);
+        lazy.resize(4 * n + 5, 0);
+    }
+    void build(int low, int high, int idx, vector<int> &v)
+    {
+
+        if (low == high)
+        {
+            tree[idx] = v[low];
+            return;
+        }
+
+        int mid = (low + high) / 2;
+
+        build(low, mid, 2 * idx + 1, v);
+        build(mid + 1, high, 2 * idx + 2, v);
+        tree[idx] = tree[2 * idx + 1] + tree[2 * idx + 2];
+    }
+
+    void rangeupdate(int low, int high, int idx, int l, int r, int val)
+    {
+
+        if (lazy[idx] != 0)
+        {
+
+            tree[idx] += (high - low + 1) * lazy[idx];
+            if (low != high)
+            {
+                lazy[2 * idx + 1] += lazy[idx];
+                lazy[2 * idx + 2] += lazy[idx];
+            }
+            lazy[idx] = 0;
+        }
+
+        // Non overlapping case handling
+        if (low > r || high < l)
+            return;
+
+        // Complete overlapping case handling
+        if (low >= l && high <= r)
+        {
+            tree[idx] += (high - low + 1) * val;
+            if (low != high)
+            {
+                lazy[2 * idx + 1] += val;
+                lazy[2 * idx + 2] += val;
+            }
+            return;
+        }
+
+        // Partial overlapping case handling
+
+        int mid = (low + high) / 2;
+        rangeupdate(low, mid, 2 * idx + 1, l, r, val);
+        rangeupdate(mid + 1, high, 2 * idx + 2, l, r, val);
+        tree[idx] = tree[2 * idx + 1] + tree[2 * idx + 2];
+    }
+
+    int query(int low, int high, int idx, int l, int r)
+    {
+
+        if (lazy[idx] != 0)
+        {
+            tree[idx] += (high - low + 1) * lazy[idx];
+            if (low != high)
+            {
+                lazy[2 * idx + 1] += lazy[idx];
+                lazy[2 * idx + 2] += lazy[idx];
+            }
+            lazy[idx] = 0;
+        }
+
+        if (low > r || high < l)
+        {
+            return 0;
+        }
+
+        if (low >= l && high <= r)
+        {
+            return tree[idx];
+        }
+
+        int mid = (low + high) / 2;
+
+        int left = query(low, mid, 2 * idx + 1, l, r);
+        int right = query(mid + 1, high, 2 * idx + 2, l, r);
+        return left + right;
+    }
+};
