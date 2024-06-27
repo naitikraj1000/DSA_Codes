@@ -1,7 +1,7 @@
 
-//p[i]=max(0,min(r-i,p[l+r-i]);
-//l...r bounding box both are non exclusive
-// updating l and r
+// p[i]=max(0,min(r-i,p[l+r-i]);
+// l...r bounding box both are non exclusive
+//  updating l and r
 
 /*if(i+p[i]>r){
 update l and r
@@ -10,48 +10,78 @@ r=i+p[i];
 }
 */
 
-
-template <typename T>
-vector<int> manacher(int n, const T &s)
+class Manacher
 {
-    if (n == 0)
+    string t;
+    vector<int> p;
+
+    int lpsStart, lpsLength;
+
+public:
+    Manacher(string s)
     {
-        return vector<int>();
-    }
-    vector<int> res(2 * n - 1, 0);
-    int l = -1, r = -1;
-    for (int z = 0; z < 2 * n - 1; z++)
-    {
-        int i = (z + 1) >> 1;
-        int j = z >> 1;
-        int p = (i >= r ? 0 : min(r - i, res[2 * (l + r) - z]));
-        while (j + p + 1 < n && i - p - 1 >= 0)
+        for (char i : s)
         {
-            if (!(s[j + p + 1] == s[i - p - 1]))
+            t += string("#") + i;
+        }
+        t += string("#");
+
+        build();
+    }
+
+    // p[i] = defines how many length of palindrome we have at index i.
+    // Actual length of palindrome at p[i] is p[i] - 1, as We initially assigned 1 value to every p[i], So '#' characters also got length 1, which is why we have to subtract 1.
+    void build()
+    {
+        int n = t.size();
+        p.resize(n, 1);
+
+        int l = 1, r = 1;
+
+        for (int i = 1; i < n; i++)
+        {
+            if (l + r - i >= 0)
+                p[i] = max(1, min(r - i, p[l + r - i]));
+
+            while (i - p[i] >= 0 && i + p[i] < n && t[i - p[i]] == t[i + p[i]])
+                p[i]++;
+
+            if (i + p[i] > r)
             {
-                break;
-            }
-            p++;
-        }
-        if (j + p > r)
-        {
-            l = i - p;
-            r = j + p;
-        }
-        res[z] = p;
-    }
-    return res;
-}
+                l = i - p[i];
+                r = i + p[i];
 
-template <typename T>
-vector<int> manacher(const T &s)
-{
-    return manacher((int)s.size(), s);
-}
-bool isPalindrome(vector<int> &pal, int l, int r)
-{
-    int len = r - l + 1;
-    if (pal[l + r] >= len / 2)
-        return 1;
-    return 0;
-}
+                if (lpsLength < p[i])
+                {
+                    lpsStart = l + 2;
+                    lpsLength = p[i] - 1;
+                }
+            }
+        }
+    }
+
+    int getLongest(int center, bool odd)
+    {
+        int position = 2 * center + 1 + (!odd);
+        return p[position] - 1;
+    }
+
+    // (r - l + 1) is the size of the current window, if current window size comes under its center's biggest palindrome, then it means it's also palindrome, as part of palindrome is also palindrome.
+    bool checkPalindrome(int l, int r)
+    {
+        if ((r - l + 1) <= getLongest((l + r) / 2, (r - l + 1) % 2))
+            return true;
+        return false;
+    }
+
+    string longestPalindromeSubstring()
+    {
+        int n = t.size();
+        string ans = "";
+        for (int i = lpsStart; i < n && lpsLength--; i += 2)
+        {
+            ans.push_back(t[i]);
+        }
+        return ans;
+    }
+};
