@@ -1,3 +1,7 @@
+
+//p[i]=max(0,min(r-i,p[l+r-i]);
+//l...r bounding box both are non exclusive
+
 template <typename T>
 vector<int> manacher(int n, const T &s)
 {
