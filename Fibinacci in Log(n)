@@ -1,0 +1,50 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+//{
+// Fn + 1 Fn Fn Fn - 1
+// }
+
+void matrix_multiply(ll a[2][2], ll b[2][2])
+{
+
+	ll x = a[0][0] * b[0][0] + a[0][1] * b[1][0];
+	ll y = a[0][0] * b[0][1] + a[0][1] * b[1][1];
+	ll z = a[1][0] * b[0][0] + a[1][1] * b[1][0];
+	ll w = a[1][0] * b[0][1] + a[1][1] * b[1][1];
+
+	a[0][0] = x;
+	a[0][1] = y;
+	a[1][0] = z;
+	a[1][1] = w;
+}
+void func(ll pw, ll mat[2][2])
+{
+	if (pw == 0 || pw == 1)
+	{
+		return;
+	}
+
+	ll temp[2][2] = {{1, 1}, {1, 0}};
+	func(pw / 2, mat);
+
+	matrix_multiply(mat, mat);
+
+	if (pw % 2 != 0)
+	{
+		matrix_multiply(mat, temp);
+	}
+}
+int main()
+{
+
+	ll val;
+	cin >> val;
+
+	ll mat[2][2] = {{1, 1}, {1, 0}};
+
+	func(val - 1, mat);
+
+	cout << mat[0][0] << endl;
+}
