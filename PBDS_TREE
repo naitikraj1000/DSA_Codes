@@ -434,6 +434,31 @@ public:
         return sum;
     }
 
+    Node *find_by_order(Node *root, int idx)
+    {
+        if (root == NULL)
+            return NULL;
+
+        // Get size of left subtree
+        int leftSize = getSize(root->left);
+
+        // If idx is in the left subtree
+        if (idx < leftSize)
+        {
+            return find_by_order(root->left, idx);
+        }
+        // If idx is in the current node's range (considering frequency)
+        else if (idx < leftSize + root->freq)
+        {
+            return root;
+        }
+        // If idx is in the right subtree
+        else
+        {
+            return find_by_order(root->right, idx - leftSize - root->freq);
+        }
+    }
+
     void inorder(Node *root)
     {
         if (root == NULL)
@@ -443,19 +468,3 @@ public:
         inorder(root->right);
     }
 };
-
-int main()
-{
-    avl_tree *avl = new avl_tree();
-    Node *root = NULL;
-    root = avl->insert(root, 10);
-    root = avl->insert(root, 25);
-    root = avl->insert(root, 9);
-    root = avl->insert(root, 8);
-    root = avl->insert(root, 5);
-    root = avl->insert(root, 3);
-    root = avl->insert(root, 5);
-    root = avl->insert(root, 20);
-
-    avl->inorder(root);
-}
