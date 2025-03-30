@@ -1,0 +1,461 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+class Node
+{
+
+public:
+    int val;
+    Node *left;
+    Node *right;
+    int height;
+    int freq;
+    int sum;
+    int count_less_equal;
+    int count_less;
+    int size;
+
+    Node(int val)
+    {
+        this->val = val;
+        left = NULL;
+        right = NULL;
+        height = 1;
+        freq = 1;
+        sum = val;
+        count_less_equal = 1;
+        size = 1;
+        count_less = 0;
+    }
+};
+
+class avl_tree
+{
+
+private:
+    int getCountLessEqual(Node *root)
+    {
+        if (root == NULL)
+            return 0;
+        return root->count_less_equal;
+    }
+
+    int getCountLess(Node *root)
+    {
+        if (root == NULL)
+            return 0;
+        return root->count_less;
+    }
+
+    int getBalance(Node *root)
+    {
+        if (root == NULL)
+            return 0;
+        return getHeight(root->left) - getHeight(root->right);
+    }
+
+    int getSum(Node *root)
+    {
+        if (root == NULL)
+            return 0;
+        return root->sum;
+    }
+
+    int getHeight(Node *root)
+    {
+        if (root == NULL)
+            return 0;
+        return root->height;
+    }
+
+    int getSize(Node *root)
+    {
+        if (root == NULL)
+            return 0;
+        return root->size;
+    }
+
+public:
+    Node *LeftRotate(Node *root)
+    {
+        // Right Right Insertion
+        Node *A = root->right;
+        Node *C = A->left;
+
+        root->right = C;
+        A->left = root;
+
+        // Update height
+        root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+        A->height = max(getHeight(A->left), getHeight(A->right)) + 1;
+
+        // Update sum
+        root->sum = getSum(root->left) + getSum(root->right) + root->val;
+        A->sum = getSum(A->left) + getSum(A->right) + A->val;
+        // Update size
+        root->size = getSize(root->left) + getSize(root->right) + root->freq;
+        A->size = getSize(A->left) + getSize(A->right) + A->freq;
+
+        // Update count_less and count_less_equal
+        root->count_less_equal = getCountLessEqual(root->right) + root->freq;
+        root->count_less = getSize(root->left);
+        A->count_less_equal = getCountLessEqual(A->right) + A->freq;
+        A->count_less = getSize(A->left);
+
+        return A;
+    }
+
+    Node *RightRotate(Node *root)
+    {
+        // Left Left Insertion
+
+        Node *A = root->left;
+        Node *C = A->right;
+
+        root->left = C;
+        A->right = root;
+
+        // Update height
+        root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+        A->height = max(getHeight(A->left), getHeight(A->right)) + 1;
+
+        // Update sum
+
+        root->sum = getSum(root->left) + getSum(root->right) + root->val;
+        A->sum = getSum(A->left) + getSum(A->right) + A->val;
+
+        // Update size
+        root->size = getSize(root->left) + getSize(root->right) + root->freq;
+        A->size = getSize(A->left) + getSize(A->right) + A->freq;
+
+        // Update count_less and count_less_equal
+        root->count_less_equal = getCountLessEqual(root->left) + root->freq;
+        root->count_less = getSize(root->left);
+        A->count_less_equal = getCountLessEqual(A->left) + A->freq;
+        A->count_less = getSize(A->left);
+
+        return A;
+    }
+
+    Node *find(Node *root, int val)
+    {
+        if (root == NULL)
+            return NULL;
+        if (root->val == val)
+            return root;
+        if (val < root->val)
+            return find(root->left, val);
+        else
+            return find(root->right, val);
+    }
+
+    Node *insert(Node *root, int val)
+
+    {
+        if (root == NULL)
+            return new Node(val);
+        if (val == root->val)
+        {
+            root->freq++;
+            root->sum += val;
+            root->count_less_equal++;
+            root->size++;
+            return root;
+        }
+
+        if (val < root->val)
+        {
+            root->left = insert(root->left, val);
+        }
+        else
+        {
+            root->right = insert(root->right, val);
+        }
+
+        // Update height
+        root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+        // Update sum
+        root->sum = getSum(root->left) + getSum(root->right) + root->val;
+        // Update count_less and count_less_equal
+        root->count_less_equal = getCountLessEqual(root->left) + root->freq;
+        root->count_less = getSize(root->left);
+
+        // Update size
+        root->size = getSize(root->left) + getSize(root->right) + root->freq;
+        // Get balance factor
+        int bf = getBalance(root);
+
+        // Left Left Case
+        if (bf > 1 && root->left->val >= val)
+        {
+            // LL Insertion
+            // Right Rotate
+            return RightRotate(root);
+        }
+
+        // Left Right Case
+        if (bf > 1 && root->left->val < val)
+        {
+            // LR Insertion
+            // Make it into Left Left Case (By Left Rotate) and then Right Rotate
+            root->left = LeftRotate(root->left);
+            return RightRotate(root);
+        }
+
+        // Right Right Case
+        if (bf < -1 && root->right->val <= val)
+        {
+            // RR Insertion
+            // Left Rotate
+            return LeftRotate(root);
+        }
+
+        // Right Left Case
+
+        if (bf < -1 && root->right->val > val)
+        {
+            // RL Insertion
+            // Make it into Right Right Case (By Right Rotate) and then Left Rotate
+            root->right = RightRotate(root->right);
+            return LeftRotate(root);
+        }
+        return root;
+    }
+
+    Node *remove(Node *root, int val)
+    {
+        // Base case
+        if (root == NULL)
+            return root;
+
+        // Step 1: Standard BST delete
+        if (val < root->val)
+        {
+            // Value to be deleted is in left subtree
+            root->left = remove(root->left, val);
+        }
+        else if (val > root->val)
+        {
+            // Value to be deleted is in right subtree
+            root->right = remove(root->right, val);
+        }
+        else
+        {
+            // Value found - this is the node to be deleted
+
+            // Case 1: Node has multiple occurrences (freq > 1)
+            if (root->freq > 1)
+            {
+                root->freq--;
+                root->sum -= root->val;
+                root->size--;
+                return root;
+            }
+
+            // Case 2: Node has one child or no child
+            if (root->left == NULL)
+            {
+                Node *temp = root->right;
+                delete root;
+                return temp;
+            }
+            else if (root->right == NULL)
+            {
+                Node *temp = root->left;
+                delete root;
+                return temp;
+            }
+
+            // Case 3: Node has two children
+            // Find inorder successor (smallest in right subtree)
+            Node *temp = root->right;
+            while (temp->left != NULL)
+                temp = temp->left;
+
+            // Copy the inorder successor's data to this node
+            root->val = temp->val;
+            root->freq = temp->freq;
+            int oldSum = root->sum;
+
+            // Delete the inorder successor
+            root->right = remove(root->right, temp->val);
+
+            // Adjust the frequency and sum after deletion
+            if (root->right)
+            {
+                root->sum = oldSum - temp->val * temp->freq + getSum(root->right);
+            }
+            else
+            {
+                root->sum = getSum(root->left) + root->val * root->freq;
+            }
+        }
+
+        // If tree had only one node, return
+        if (root == NULL)
+            return root;
+
+        // Step 2: Update height, size, sum, and count values
+        root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+        root->size = getSize(root->left) + getSize(root->right) + root->freq;
+        root->sum = getSum(root->left) + getSum(root->right) + root->val * root->freq;
+        root->count_less = getSize(root->left);
+        root->count_less_equal = getCountLessEqual(root->left) + root->freq;
+
+        // Step 3: Get the balance factor to check if this node became unbalanced
+        int balance = getBalance(root);
+
+        // Step 4: Handle the unbalanced cases
+
+        // Left Left Case
+        if (balance > 1 && getBalance(root->left) >= 0)
+            return RightRotate(root);
+
+        // Left Right Case
+        if (balance > 1 && getBalance(root->left) < 0)
+        {
+            root->left = LeftRotate(root->left);
+            return RightRotate(root);
+        }
+
+        // Right Right Case
+        if (balance < -1 && getBalance(root->right) <= 0)
+            return LeftRotate(root);
+
+        // Right Left Case
+        if (balance < -1 && getBalance(root->right) > 0)
+        {
+            root->right = RightRotate(root->right);
+            return LeftRotate(root);
+        }
+
+        return root;
+    }
+
+    Node *findMin(Node *root)
+    {
+        if (root == NULL)
+            return NULL;
+        while (root->left != NULL)
+            root = root->left;
+        return root;
+    }
+
+    long long order_of_sum(Node *root, int val)
+    {
+        if (root == NULL)
+            return 0;
+        long long sum = 0;
+        if (val > root->val)
+        {
+            sum = getSum(root->left) + root->freq * root->val + order_of_sum(root->right, val);
+        }
+
+        if (val == root->val)
+        {
+            sum = getSum(root->left);
+        }
+
+        if (val < root->val)
+        {
+            sum = order_of_sum(root->left, val);
+        }
+
+        return sum;
+    }
+
+    long long order_of_key(Node *root, int val)
+    {
+        if (root == NULL)
+            return 0;
+        long long sum = 0;
+        if (val > root->val)
+        {
+            sum = getSize(root->left) + root->freq + order_of_key(root->right, val);
+        }
+
+        if (val == root->val)
+        {
+            sum = getSize(root->left);
+        }
+
+        if (val < root->val)
+        {
+            sum = order_of_key(root->left, val);
+        }
+
+        return sum;
+    }
+
+    long long order_of_sum_equal(Node *root, int val)
+    {
+        if (root == NULL)
+            return 0;
+        long long sum = 0;
+        if (val > root->val)
+        {
+            sum = getSum(root->left) + root->freq * root->val + order_of_sum_equal(root->right, val);
+        }
+
+        if (val == root->val)
+        {
+            sum = getSum(root->left) + root->freq * root->val;
+        }
+
+        if (val < root->val)
+        {
+            sum = order_of_sum_equal(root->left, val);
+        }
+
+        return sum;
+    }
+
+    long long order_of_key_equal(Node *root, int val)
+    {
+        if (root == NULL)
+            return 0;
+        long long sum = 0;
+        if (val > root->val)
+        {
+            sum = getSize(root->left) + root->freq + order_of_key_equal(root->right, val);
+        }
+
+        if (val == root->val)
+        {
+            sum = getSize(root->left) + root->freq;
+        }
+
+        if (val < root->val)
+        {
+            sum = order_of_key_equal(root->left, val);
+        }
+
+        return sum;
+    }
+
+    void inorder(Node *root)
+    {
+        if (root == NULL)
+            return;
+        inorder(root->left);
+        cout << root->val << " ";
+        inorder(root->right);
+    }
+};
+
+int main()
+{
+    avl_tree *avl = new avl_tree();
+    Node *root = NULL;
+    root = avl->insert(root, 10);
+    root = avl->insert(root, 25);
+    root = avl->insert(root, 9);
+    root = avl->insert(root, 8);
+    root = avl->insert(root, 5);
+    root = avl->insert(root, 3);
+    root = avl->insert(root, 5);
+    root = avl->insert(root, 20);
+
+    avl->inorder(root);
+}
