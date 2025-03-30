@@ -468,3 +468,25 @@ public:
         inorder(root->right);
     }
 };
+
+// Remarks
+
+int main()
+{
+    avl_tree *avl = new avl_tree();
+    Node *root = NULL;
+    root = avl->insert(root, 3);
+    root = avl->insert(root, 5);
+    root = avl->insert(root, 5);
+    root = avl->insert(root, 8);
+    root = avl->insert(root, 9);
+    root = avl->insert(root, 10);
+    root = avl->insert(root, 20);
+    root = avl->insert(root, 25);
+
+    cout<<avl->order_of_sum_equal(root,8)<<endl;
+
+
+
+    avl->inorder(root);
+}
