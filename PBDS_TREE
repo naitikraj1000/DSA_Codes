@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 using namespace std;
-#define ll long long
 
 class Node
 {
@@ -33,7 +32,7 @@ public:
 class avl_tree
 {
 
-private:
+public:
     int getCountLessEqual(Node *root)
     {
         if (root == NULL)
@@ -69,14 +68,13 @@ private:
         return root->height;
     }
 
+public:
     int getSize(Node *root)
     {
         if (root == NULL)
             return 0;
         return root->size;
     }
-
-public:
     Node *LeftRotate(Node *root)
     {
         // Right Right Insertion
@@ -91,7 +89,7 @@ public:
         A->height = max(getHeight(A->left), getHeight(A->right)) + 1;
 
         // Update sum
-        root->sum = getSum(root->left) + getSum(root->right) + root->val;
+        root->sum = getSum(root->left) + getSum(root->right) + root->val*root->freq;
         A->sum = getSum(A->left) + getSum(A->right) + A->val;
         // Update size
         root->size = getSize(root->left) + getSize(root->right) + root->freq;
@@ -122,7 +120,7 @@ public:
 
         // Update sum
 
-        root->sum = getSum(root->left) + getSum(root->right) + root->val;
+        root->sum = getSum(root->left) + getSum(root->right) + root->val*root->freq;
         A->sum = getSum(A->left) + getSum(A->right) + A->val;
 
         // Update size
@@ -154,7 +152,10 @@ public:
 
     {
         if (root == NULL)
+        {
             return new Node(val);
+        }
+
         if (val == root->val)
         {
             root->freq++;
@@ -170,22 +171,28 @@ public:
         }
         else
         {
+           
             root->right = insert(root->right, val);
         }
+
+    
 
         // Update height
         root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
         // Update sum
-        root->sum = getSum(root->left) + getSum(root->right) + root->val;
+        root->sum = getSum(root->left) + getSum(root->right) + root->val* root->freq;
+       
         // Update count_less and count_less_equal
         root->count_less_equal = getCountLessEqual(root->left) + root->freq;
         root->count_less = getSize(root->left);
 
         // Update size
         root->size = getSize(root->left) + getSize(root->right) + root->freq;
+
         // Get balance factor
         int bf = getBalance(root);
-
+        
+       
         // Left Left Case
         if (bf > 1 && root->left->val >= val)
         {
@@ -206,6 +213,7 @@ public:
         // Right Right Case
         if (bf < -1 && root->right->val <= val)
         {
+            
             // RR Insertion
             // Left Rotate
             return LeftRotate(root);
@@ -223,115 +231,81 @@ public:
         return root;
     }
 
-    Node *remove(Node *root, int val)
-    {
-        // Base case
-        if (root == NULL)
-            return root;
-
-        // Step 1: Standard BST delete
-        if (val < root->val)
-        {
-            // Value to be deleted is in left subtree
+    Node *remove(Node *root, int val) {
+        if (root == NULL) return root;
+    
+        if (val < root->val) {
             root->left = remove(root->left, val);
-        }
-        else if (val > root->val)
-        {
-            // Value to be deleted is in right subtree
+        } else if (val > root->val) {
             root->right = remove(root->right, val);
-        }
-        else
-        {
+        } else {
             // Value found - this is the node to be deleted
-
-            // Case 1: Node has multiple occurrences (freq > 1)
-            if (root->freq > 1)
-            {
+            if (root->freq > 1) {
                 root->freq--;
                 root->sum -= root->val;
                 root->size--;
                 return root;
             }
-
-            // Case 2: Node has one child or no child
-            if (root->left == NULL)
-            {
+    
+            // Node with only one child or no child
+            if (root->left == NULL) {
                 Node *temp = root->right;
                 delete root;
                 return temp;
-            }
-            else if (root->right == NULL)
-            {
+            } else if (root->right == NULL) {
                 Node *temp = root->left;
                 delete root;
                 return temp;
             }
-
-            // Case 3: Node has two children
-            // Find inorder successor (smallest in right subtree)
-            Node *temp = root->right;
-            while (temp->left != NULL)
-                temp = temp->left;
-
-            // Copy the inorder successor's data to this node
-            root->val = temp->val;
-            root->freq = temp->freq;
-            int oldSum = root->sum;
-
-            // Delete the inorder successor
+    
+            // Node with two children
+            Node *temp = findMin(root->right);
+            // Store all necessary values before deletion
+            int temp_val = temp->val;
+            int temp_freq = temp->freq;
+            // Remove the successor (will be handled recursively)
             root->right = remove(root->right, temp->val);
-
-            // Adjust the frequency and sum after deletion
-            if (root->right)
-            {
-                root->sum = oldSum - temp->val * temp->freq + getSum(root->right);
-            }
-            else
-            {
-                root->sum = getSum(root->left) + root->val * root->freq;
-            }
+            // Update current node's values
+            root->val = temp_val;
+            root->freq = temp_freq;
         }
-
-        // If tree had only one node, return
-        if (root == NULL)
-            return root;
-
-        // Step 2: Update height, size, sum, and count values
+    
+        // If the tree had only one node then return
+        if (root == NULL) return root;
+    
+        // Update height, size, sum, and counts
         root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
         root->size = getSize(root->left) + getSize(root->right) + root->freq;
         root->sum = getSum(root->left) + getSum(root->right) + root->val * root->freq;
         root->count_less = getSize(root->left);
         root->count_less_equal = getCountLessEqual(root->left) + root->freq;
-
-        // Step 3: Get the balance factor to check if this node became unbalanced
+    
+        // Rebalance the tree
         int balance = getBalance(root);
-
-        // Step 4: Handle the unbalanced cases
-
+    
         // Left Left Case
         if (balance > 1 && getBalance(root->left) >= 0)
             return RightRotate(root);
-
+    
         // Left Right Case
-        if (balance > 1 && getBalance(root->left) < 0)
-        {
+        if (balance > 1 && getBalance(root->left) < 0) {
             root->left = LeftRotate(root->left);
             return RightRotate(root);
         }
-
+    
         // Right Right Case
         if (balance < -1 && getBalance(root->right) <= 0)
             return LeftRotate(root);
-
+    
         // Right Left Case
-        if (balance < -1 && getBalance(root->right) > 0)
-        {
+        if (balance < -1 && getBalance(root->right) > 0) {
             root->right = RightRotate(root->right);
             return LeftRotate(root);
         }
-
+    
         return root;
     }
+
 
     Node *findMin(Node *root)
     {
@@ -469,24 +443,110 @@ public:
     }
 };
 
-// Remarks
+long long dp[100005][16];
+unordered_map<int, int> op;
+
+long long func(int idx, int k, int x)
+{
+    if (idx == op.size())
+    {
+        if (k == 0)
+        {
+            return 0;
+        }
+        return INT_MAX;
+    }
+
+    if (dp[idx][k] != -1)
+    {
+        return dp[idx][k];
+    }
+    long long ans = INT_MAX;
+    if (k > 0)
+    {
+        ans = min(ans, op[idx] + func(idx + x, k - 1, x));
+    }
+    ans = min(ans, func(idx + 1, k, x));
+    return dp[idx][k] = ans;
+}
+
+class Solution
+{
+public:
+    long long minOperations(vector<int> &v, int x, int k)
+    {
+
+        avl_tree *avl = new avl_tree();
+        Node *root = NULL;
+        op.clear();
+        for (int i = 0; i < v.size(); i++)
+        {
+            op[i] = INT_MAX;
+        }
+
+        for (int i = 0; i <= v.size(); i++)
+        {
+            for (int j = 0; j <= k; j++)
+            {
+                dp[i][j] = -1;
+            }
+        }
+
+        for (int i = 0; i < x - 1; i++)
+        {
+            root = avl->insert(root, v[i]);
+          
+        }
+        for (int i = x - 1; i < v.size(); i++)
+        {
+            root = avl->insert(root, v[i]);
+         
+            int sz = avl->getSize(root);
+            // cout<<i<<" "<<avl->getSum(root)<<" "<<root->val<<endl;
+            if (x % 2)
+            {
+                // Odd
+                int median = avl->find_by_order(root, sz / 2)->val;
+                int total_sum = avl->getSum(root);
+                int left_sum = avl->order_of_sum_equal(root, median);
+                int larger_sum = total_sum - left_sum;
+                int cnt1 = avl->order_of_key_equal(root, median);
+                int cnt2 = sz - cnt1;
+                op[i - (x - 1)] = abs(left_sum - cnt1 * median) + abs(larger_sum - cnt2 * median);
+                cout<<i<<" "<<median<<" "<<op[i - (x - 1)]<<" "<<sz<<endl;
+            }
+            else
+            {
+                
+                vector<int> median;
+                median.push_back(avl->find_by_order(root, sz / 2)->val);
+                median.push_back(avl->find_by_order(root, sz / 2 - 1)->val);
+               
+                for (int j = 0; j < median.size(); j++)
+                {
+                    int total_sum = avl->getSum(root);
+                    int left_sum = avl->order_of_sum_equal(root, median[j]);
+                    int larger_sum = total_sum - left_sum;
+                    int cnt1 = avl->order_of_key_equal(root, median[j]);
+                    int cnt2 = sz - cnt1;
+                    op[i - (x - 1)] = min(op[i - (x - 1)], abs(left_sum - cnt1 * median[j]) + abs(larger_sum - cnt2 * median[j]));
+                    // cout<<i<<" "<<median[j]<<" "<<total_sum<<" "<<left_sum<<" "<<larger_sum<<" "<<cnt1<<" "<<cnt2<<endl;
+                }
+            }
+            // cout<<i<<" "<<avl->getSize(root)<<" "<<v[i-(x-1)]<<endl;
+            root = avl->remove(root, v[i - (x - 1)]);
+            // cout<<i<<" "<<avl->getSize(root)<<endl;
+            
+        }
+
+        return func(0, k, x);
+    }
+};
 
 int main()
 {
-    avl_tree *avl = new avl_tree();
-    Node *root = NULL;
-    root = avl->insert(root, 3);
-    root = avl->insert(root, 5);
-    root = avl->insert(root, 5);
-    root = avl->insert(root, 8);
-    root = avl->insert(root, 9);
-    root = avl->insert(root, 10);
-    root = avl->insert(root, 20);
-    root = avl->insert(root, 25);
-
-    cout<<avl->order_of_sum_equal(root,8)<<endl;
-
-
-
-    avl->inorder(root);
+    vector<int> v = {17,-1};
+    int x = 2, k = 1;
+    Solution s;
+    cout << s.minOperations(v, x, k) << endl;
 }
