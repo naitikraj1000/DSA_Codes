@@ -447,12 +447,12 @@ public:
         }
     }
 
-    void inorder(Node *root)
+    void preorder(Node *root)
     {
         if (root == NULL)
             return;
-        inorder(root->left);
         cout << root->val << " ";
-        inorder(root->right);
+        preorder(root->left);
+        preorder(root->right);
     }
 };
